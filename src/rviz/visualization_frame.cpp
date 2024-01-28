@@ -28,6 +28,7 @@
  */
 
 #include <fstream>
+#include <iostream>
 #include <memory>
 
 #include <QAction>
@@ -146,6 +147,21 @@ VisualizationFrame::VisualizationFrame(QWidget* parent)
   statusBar()->addPermanentWidget(status_label_, 1);
   connect(this, &VisualizationFrame::VisualizationFrame::statusUpdate, status_label_, &QLabel::setText);
 
+  const char* homeDirCStr = getenv("HOME");
+  if (homeDirCStr == nullptr) {
+      std::cerr << "HOME is not set\n";
+  } else {
+      std::string homeDir = homeDirCStr;
+      std::string filePath = homeDir + "/.ros/FPS_out.txt";
+      std::cout << "HOME: " << homeDir << "\n";
+      std::cout << "Trying to open file at: " << filePath << "\n";
+      outputFile.open(filePath, std::ios::out);
+      if (!outputFile.is_open()) {
+          std::cerr << "Failed to open FPS_out.txt\n";
+      } else {
+        outputFile << std::setprecision(3);
+      }
+  }
   fps_label_ = new QLabel("");
   fps_label_->setMinimumWidth(40);
   fps_label_->setAlignment(Qt::AlignRight);
@@ -163,6 +179,9 @@ VisualizationFrame::~VisualizationFrame()
   delete panel_factory_;
   delete render_panel_;
   delete manager_;
+  if (outputFile.is_open()) {
+      outputFile.close();
+  }
 }
 
 void VisualizationFrame::setApp(QApplication* app)
@@ -185,6 +204,11 @@ void VisualizationFrame::updateFps()
     float fps = frame_count_ / wall_diff.toSec();
     frame_count_ = 0;
     last_fps_calc_time_ = ros::WallTime::now();
+    if (outputFile.is_open()) {
+      outputFile << fps << "\n";
+    } else {
+      std::cerr << "FPS_out.txt is not open\n";
+    }
     if (original_status_bar_ == statusBar())
     {
       fps_label_->setText(QString::number(int(fps)) + QString(" fps"));

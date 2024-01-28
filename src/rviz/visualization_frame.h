@@ -30,6 +30,8 @@
 #ifndef RVIZ_VISUALIZATION_FRAME_H
 #define RVIZ_VISUALIZATION_FRAME_H
 
+#include <fstream>
+
 #include <boost/shared_ptr.hpp>
 
 #include <QMainWindow>
@@ -79,6 +81,8 @@ public:
   ~VisualizationFrame() override;
 
   [[deprecated("setApp() not needed anymore")]] void setApp(QApplication* app);
+
+  std::ofstream outputFile;
 
   /** @brief Call this @e before initialize() to have it take effect. */
   void setShowChooseNewMaster(bool show);
